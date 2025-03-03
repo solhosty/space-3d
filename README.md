@@ -1,39 +1,12 @@
-# sv
+## Space 3D Flight
+A basic flight simulator built with [Threlte](https://threlte.xyz/docs/learn/getting-started/introduction)
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+![image](https://github.com/user-attachments/assets/2feed7fe-d24f-4174-92b2-d930bcbcbb8f)
+![image](https://github.com/user-attachments/assets/f327c8f2-199a-4634-8d38-35d9e77a620d)
+![image](https://github.com/user-attachments/assets/58be4c27-c41c-4ada-b659-c50b4c088f56)
 
-## Creating a project
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-
-To create a production version of your app:
-
-```bash
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-# space-3d
+### Controls
+W,A,S,D - Move up, down, left, right
+C - Change camera angle
+G - Init landing gears
