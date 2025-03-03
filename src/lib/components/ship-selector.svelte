@@ -13,14 +13,14 @@
     }
 </script>
 
-<div class="ship-selector min-h-screen flex flex-col items-center justify-center p-8">
+<div class="ship-selector h-full flex flex-col items-center justify-center p-8">
     <h1 class="text-5xl font-bold mb-12 text-white text-center">Select Your Ship</h1>
     
-    <div class="ship-options grid grid-cols-1 md:grid-cols-2 gap-8 mb-12 w-full max-w-6xl">
-        <div class="ship-option p-6 rounded-xl transition-all duration-300 {selectedShip === 'xwing' ? 'border-cyan-400 shadow-cyan-400/50' : 'border-gray-600'}">
+    <div class="ship-options space-y-4 flex items-start justify-center  gap-x-8 mb-2 w-full max-w-6xl">
+        <div class="ship-option p-6 h-fit w-fit rounded-xl transition-all duration-300 {selectedShip === 'xwing' ? 'border-cyan-400 shadow-cyan-400/50' : 'border-gray-600'}">
             <h2 class="text-2xl font-bold mb-4 text-center">X-Wing</h2>
             
-            <div class="h-64 mb-6">
+            <div class="mb-6 h-32">
                 <Canvas>
                     <T.PerspectiveCamera makeDefault position={[0, 1, 5]} fov={50}>
                         <OrbitControls enableZoom={false} />
@@ -50,10 +50,10 @@
             </button>
         </div>
         
-        <div class="ship-option p-6 rounded-xl transition-all duration-300 {selectedShip === 'shuttle' ? 'border-cyan-400 shadow-cyan-400/50' : 'border-gray-600'}">
+        <div class="ship-option p-6 rounded-xl h-fit w-fit transition-all duration-300 {selectedShip === 'shuttle' ? 'border-cyan-400 shadow-cyan-400/50' : 'border-gray-600'}">
             <h2 class="text-2xl font-bold mb-4 text-center">Shuttle</h2>
             
-            <div class="h-64 mb-6">
+            <div class="h-32 mb-6">
                 <Canvas>
                     <T.PerspectiveCamera makeDefault position={[0, 1, 5]} fov={50}>
                         <OrbitControls enableZoom={false} />
@@ -67,7 +67,7 @@
             </div>
             
             <div class="text-gray-300 mb-6 text-center">
-                <p class="mb-4">Slower but with powerful vertical thrusters for precise landings</p>
+                <p class="mb-4">Slower but with powerful vertical thrusters (chonky)</p>
                 <ul class="text-left mx-auto max-w-xs">
                     <li class="mb-2">• Moderate top speed</li>
                     <li class="mb-2">• Vertical thrusters (Spacebar)</li>

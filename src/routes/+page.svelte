@@ -4,7 +4,7 @@
     import { gameState } from '$lib/stores/gameState.svelte';
 </script>
 
-<div class="game-container">
+<div class="game-container h-full w-full bg-black relative">
     {#if gameState.state === 'menu'}
         <ShipSelector />
     {:else}
@@ -13,12 +13,3 @@
         </Canvas>
     {/if}
 </div>
-
-<style>
-    .game-container {
-        width: 100vw;
-        height: 100vh;
-        position: relative;
-        background: black;
-    }
-</style> 
