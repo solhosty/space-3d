@@ -4,7 +4,7 @@
     import { gameState } from '$lib/stores/gameState.svelte';
 </script>
 
-<div class="game-container h-full w-full bg-black relative">
+<div class="game-container min-h-screen w-full bg-black relative">
     {#if gameState.state === 'menu'}
         <ShipSelector />
     {:else}

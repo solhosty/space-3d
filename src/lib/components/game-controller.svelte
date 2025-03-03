@@ -5,18 +5,25 @@
     import { onMount, onDestroy } from 'svelte';
     import { Stars, Shuttle, XWing, Planet, Moon, Asteroid, HUD } from '.';
     
+    // Mobile controls state
+    let touchControls = $state(false);
+    let touchThrust = $state(0);
+    let touchYaw = $state(0);
+    let touchPitch = $state(0);
+    let touchAltitude = $state(0);
+    
     // Ship movement controls
     let thrust = 0;
     let keys = new Set<string>();
     let gravity = 0.01;
-    let hovering = false;
-    let stabilizeAltitude = true; // Default to altitude stabilization
+    let hovering = $state(false);
+    let stabilizeAltitude = $state(true); // Default to altitude stabilization
     
     // Camera controls
     let cameraOffset = { x: 0, y: 5, z: -15 }; // Third-person camera offset
     
     // Collision detection
-    let collisionDetected = false;
+    let collisionDetected = $state(false);
     let nearbyObjects: Array<{
         type: string;
         distance: number;
@@ -202,19 +209,25 @@
         // Reset thrust
         thrust = 0;
         
+        // Combine keyboard and touch inputs
         // Forward/backward movement
         if (keys.has('w')) thrust += 1;
         if (keys.has('s')) thrust -= 1;
+        thrust += touchThrust;
         
-        // Rotation controls - only rotate the ship, not the camera
+        // Rotation controls
         if (keys.has('a')) gameState.rotation.y += 0.02;
         if (keys.has('d')) gameState.rotation.y -= 0.02;
+        gameState.rotation.y += touchYaw * 0.02;
+        
         if (keys.has('arrowup')) gameState.rotation.x += 0.02;
         if (keys.has('arrowdown')) gameState.rotation.x -= 0.02;
+        gameState.rotation.x += touchPitch * 0.02;
         
         // Altitude control
         if (keys.has('q')) gameState.position.y += 0.5;
         if (keys.has('e')) gameState.position.y -= 0.5;
+        gameState.position.y += touchAltitude * 0.5;
     }
     
     // Apply physics to ship movement
@@ -341,6 +354,9 @@
         // Start game loop
         gameLoop();
         
+        // Check if this is likely a mobile device
+        touchControls = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
@@ -355,7 +371,7 @@
         id: number;
         position: { x: number; y: number; z: number };
         size: number;
-    }> = [];
+    }> = $state([]);
 
     function generateAsteroids(count: number, seed: number) {
     const random = seedRandom(seed);
@@ -385,6 +401,62 @@
             cancelAnimationFrame(animationFrame);
         }
     });
+
+    // Handle touch controls
+    function handleTouchStart(e: TouchEvent, control: string) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        updateTouchControl(control, x, y, centerX, centerY);
+    }
+    
+    function handleTouchMove(e: TouchEvent, control: string) {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = (e.target as HTMLElement).getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        updateTouchControl(control, x, y, centerX, centerY);
+    }
+    
+    function handleTouchEnd(e: TouchEvent, control: string) {
+        e.preventDefault();
+        // Reset the control when touch ends
+        if (control === 'movement') {
+            touchThrust = 0;
+            touchYaw = 0;
+        } else if (control === 'altitude') {
+            touchAltitude = 0;
+        } else if (control === 'camera') {
+            touchPitch = 0;
+        }
+    }
+    
+    function updateTouchControl(control: string, x: number, y: number, centerX: number, centerY: number) {
+        // Calculate normalized values (-1 to 1)
+        const normalizedX = (x - centerX) / centerX;
+        const normalizedY = (y - centerY) / centerY;
+        
+        if (control === 'movement') {
+            // Left joystick controls thrust and yaw
+            touchThrust = -normalizedY; // Forward/backward
+            touchYaw = -normalizedX;    // Left/right rotation
+        } else if (control === 'altitude') {
+            // Right joystick vertical controls altitude
+            touchAltitude = -normalizedY;
+        } else if (control === 'camera') {
+            // Right joystick horizontal controls pitch
+            touchPitch = normalizedY;
+        }
+    }
 </script>
 
 <World>
@@ -462,6 +534,51 @@
 <!-- HUD overlay -->
 <HUD hovering={hovering} stabilizeAltitude={stabilizeAltitude} />
 
+<!-- Mobile controls - only shown on touch devices -->
+{#if touchControls}
+    <div class="mobile-controls">
+        <!-- Left joystick for movement -->
+        <div class="touch-joystick left-joystick"
+            ontouchstart={(e) => handleTouchStart(e, 'movement')}
+            ontouchmove={(e) => handleTouchMove(e, 'movement')}
+            ontouchend={(e) => handleTouchEnd(e, 'movement')}>
+            <div class="joystick-thumb" style="transform: translate({touchYaw * 30}px, {touchThrust * 30}px)"></div>
+        </div>
+        
+        <!-- Right joystick for altitude and camera -->
+        <div class="touch-joystick right-joystick"
+            ontouchstart={(e) => handleTouchStart(e, 'altitude')}
+            ontouchmove={(e) => handleTouchMove(e, 'altitude')}
+            ontouchend={(e) => handleTouchEnd(e, 'altitude')}>
+            <div class="joystick-thumb" style="transform: translate(0px, {touchAltitude * 30}px)"></div>
+        </div>
+        
+        <!-- Action buttons -->
+        <div class="touch-buttons">
+            <button class="touch-button" ontouchstart={() => { 
+                if (gameState.cameraView === 'first-person') {
+                    gameState.cameraView = 'third-person';
+                } else {
+                    gameState.cameraView = 'first-person';
+                }
+            }}>
+                <span>C</span>
+            </button>
+            <button class="touch-button" ontouchstart={() => { gameState.toggleLandingGear(); }}>
+                <span>G</span>
+            </button>
+            <button class="touch-button" ontouchstart={() => { hovering = !hovering; }}>
+                <span>H</span>
+            </button>
+            {#if gameState.selectedShip === 'shuttle'}
+                <button class="touch-button" ontouchstart={() => { gameState.activateThrusters(); }}>
+                    <span>🚀</span>
+                </button>
+            {/if}
+        </div>
+    </div>
+{/if}
+
 <!-- Hover mode indicator -->
 {#if hovering}
     <div class="hover-indicator">
@@ -531,5 +648,73 @@
         0% { opacity: 0.5; }
         50% { opacity: 1; }
         100% { opacity: 0.5; }
+    }
+    
+    /* Mobile controls styling */
+    .mobile-controls {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 200px;
+        display: flex;
+        justify-content: space-between;
+        pointer-events: none;
+        z-index: 100;
+    }
+    
+    .touch-joystick {
+        width: 120px;
+        height: 120px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 60px;
+        margin: 20px;
+        position: relative;
+        pointer-events: auto;
+    }
+    
+    .left-joystick {
+        align-self: flex-end;
+    }
+    
+    .right-joystick {
+        align-self: flex-end;
+    }
+    
+    .joystick-thumb {
+        width: 50px;
+        height: 50px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 25px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-left: -25px;
+        margin-top: -25px;
+    }
+    
+    .touch-buttons {
+        display: flex;
+        flex-direction: row;
+        align-self: flex-end;
+        margin: 20px;
+        gap: 10px;
+    }
+    
+    .touch-button {
+        width: 60px;
+        height: 60px;
+        background: rgba(0, 100, 255, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-radius: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+        font-size: 20px;
+        pointer-events: auto;
     }
 </style>
